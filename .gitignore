@@ -1,6 +1,4 @@
-*
-
-!.gitignore
-
-!data/train/
-!data/val/
+**/*.jpg
+**/*.jpeg
+**/*.png
+**/*.gif
