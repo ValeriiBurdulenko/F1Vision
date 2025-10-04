@@ -1,10 +1,6 @@
-**/*.jpg
-**/*.jpeg
-**/*.png
-**/*.gif
-
 *
 
 !.gitignore
 
-!.data
+!data/train/
+!data/val/
