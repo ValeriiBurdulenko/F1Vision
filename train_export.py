@@ -8,6 +8,7 @@ from torch.utils.data import DataLoader
 import os
 import json
 import argparse
+from torch.utils.data.sampler import WeightedRandomSampler
 
 # --- GLOBAL CONSTANTS ---
 CLASS_NAMES_FILE = "class_labels.json"
@@ -34,6 +35,28 @@ MEAN = [0.485, 0.456, 0.406]
 STD = [0.229, 0.224, 0.225]
 
 
+def get_sample_weights(dataset):
+    """Рассчитывает веса для WeightedRandomSampler на основе частоты классов."""
+    # Получаем метки классов для всего набора данных
+    targets = dataset.targets
+
+    # Считаем количество образцов в каждом классе
+    class_sample_count = torch.tensor(
+        [len(torch.where(torch.tensor(targets) == t)[0])
+         for t in torch.unique(torch.tensor(targets))]
+    )
+
+    # Рассчитываем веса классов: 1.0 / количество образцов
+    weight = 1.0 / class_sample_count.float()
+
+    # Создаем тензор весов для каждого образца
+    samples_weight = weight[targets]
+
+    print(
+        f"✅ Class balancing applied. Max weight: {weight.max().item():.4f}, Min weight: {weight.min().item():.4f}")
+    return samples_weight.tolist()
+
+
 def main():
     # Setup argument parser for export type
     parser = argparse.ArgumentParser(description="Train and export model")
@@ -47,20 +70,19 @@ def main():
     # Aggressive data augmentation for the training set (Teacher and Student)
     aggressive_transform = transforms.Compose([
         transforms.Resize(INPUT_SIZE),
-        transforms.ColorJitter(brightness=0.5, contrast=0.5,
-                               saturation=0.5, hue=0.3),
-        transforms.RandomGrayscale(p=0.2),
-        transforms.RandomPerspective(distortion_scale=0.5, p=0.5),
+        transforms.RandomPerspective(distortion_scale=0.2, p=0.3),
         transforms.RandomAffine(
-            degrees=45,                         # Stronger rotation
-            translate=(0.2, 0.2),               # Shift up to 20%
-            scale=(0.8, 1.2),                   # Scaling
-            shear=15                            # Shear
+            degrees=20,                         # Stronger rotation
+            translate=(0.1, 0.1),               # Shift up to 20%
+            scale=(0.9, 1.1),                   # Scaling
+            shear=5                            # Shear
         ),
         transforms.RandomHorizontalFlip(),
+        transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3),
         transforms.ToTensor(),
+        transforms.RandomRotation(15),
         transforms.Normalize(MEAN, STD),
-        transforms.RandomErasing(p=0.5, scale=(
+        transforms.RandomErasing(p=0.2, scale=(
             0.02, 0.33), ratio=(0.3, 3.3), value='random')
     ])
 
@@ -88,8 +110,22 @@ def main():
         train_dataset = datasets.ImageFolder(
             'data/train', transform=aggressive_transform)
         val_dataset = datasets.ImageFolder('data/val', transform=val_transform)
+        # --- ПРИМЕНЕНИЕ BALANCING (WeightedRandomSampler) ---
+        sample_weights = get_sample_weights(train_dataset)
+
+        sampler = WeightedRandomSampler(
+            weights=sample_weights,
+            num_samples=len(train_dataset),  # Размер выборки для эпохи
+            replacement=True
+        )
+
+        # Создаем DataLoader, используя Sampler и отключая shuffle
         train_loader = DataLoader(
-            train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+            train_dataset,
+            batch_size=BATCH_SIZE,
+            sampler=sampler,  # <-- WeightedRandomSampler
+            shuffle=False    # <-- Обязательно False при использовании sampler
+        )
         val_loader = DataLoader(
             val_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
