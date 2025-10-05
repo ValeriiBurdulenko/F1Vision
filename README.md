@@ -54,6 +54,19 @@ The project pipeline consists of the following stages:
 ├── mobilenetv3_student_pruned.pth  # (Generated) Final compressed PyTorch model<br>
 ├── class_labels.json     # (Generated) Mapping of class indices to names<br>
 └── ...</p>
+.
+<code class="whitespace-pre!"><span><span>.
+├── data/
+│   ├── train/            </span><span><span class="hljs-comment"># Training images (ImageFolder format: class_A/, class_B/, ...)</span></span><span>
+│   └── val/              </span><span><span class="hljs-comment"># Validation images (ImageFolder format)</span></span><span>
+├── train_export.py       </span><span><span class="hljs-comment"># Model training, KD, pruning, and export</span></span><span>
+├── real_time_inference_and_self_learn.py </span><span><span class="hljs-comment"># Real-time inference with YOLO, classification, and self-learning</span></span><span>
+├── eval_val.py           </span><span><span class="hljs-comment"># Model evaluation (classification report, confusion matrix)</span></span><span>
+├── requirements.txt      </span><span><span class="hljs-comment"># Python dependencies</span></span><span>
+├── mobilenetv3_student_pruned.pth  </span><span><span class="hljs-comment"># (Generated) Final compressed PyTorch model</span></span><span>
+├── class_labels.json     </span><span><span class="hljs-comment"># (Generated) Mapping of class indices to names</span></span><span>
+└── </span><span><span class="hljs-punctuation">...</span></span><span>
+</span></span></code>
 
 ## 1. Training and Export (train_export.py)
 
