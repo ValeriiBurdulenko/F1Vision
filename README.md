@@ -37,9 +37,10 @@ The project pipeline consists of the following stages:
 # python -m venv env
 # source env/bin/activate      # Linux/macOS
 # .\\env\\Scripts\\activate       # Windows
+```
 
 # Install dependencies
-pip install -r requirements.txt
+`pip install -r requirements.txt`
 
 ### Project Structure
 .
@@ -77,7 +78,7 @@ Specify the video stream source as a command-line argument:
 This script loads the final model (mobilenetv3_student_pruned.pth) and evaluates its performance on the validation dataset (data/val).
 
 Usage
-python eval_val.py
+`python eval_val.py`
 
 Output
 Displays a Classification Report (accuracy, precision, recall, F1-score).
