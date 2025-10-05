@@ -14,7 +14,7 @@ from ultralytics import YOLO
 # --- SYSTEM AND MODEL CONSTANTS ---
 MODEL_PATH = "mobilenetv3_student_pruned.pth"
 CLASS_NAMES_FILE = "class_labels.json"
-INPUT_SIZE = (300, 300)
+INPUT_SIZE = (400, 400)
 # Mean and Standard Deviations used during training
 MEAN = np.array([0.485, 0.456, 0.406], dtype=np.float32).reshape(1, 1, 3)
 STD = np.array([0.229, 0.224, 0.225], dtype=np.float32).reshape(1, 1, 3)

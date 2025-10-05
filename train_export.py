@@ -17,7 +17,7 @@ STUDENT_MODEL_PATH = "mobilenetv3_student_pruned.pth"
 ONNX_OUTPUT_PATH = "mobilenetv3_student_pruned_fp32.onnx"
 
 # Model Hyperparameters
-INPUT_SIZE = (300)
+INPUT_SIZE = (400, 400)
 BATCH_SIZE = 16
 LEARNING_RATE = 1e-4
 
@@ -26,7 +26,7 @@ KD_TEMPERATURE = 4.0
 KD_ALPHA = 0.5
 
 # Pruning Parameters
-PRUNING_AMOUNT = 0.15  # 30% structured pruning
+PRUNING_AMOUNT = 0.3  # 30% structured pruning
 
 # Export Parameters
 OPSET_VERSION = 14
@@ -61,20 +61,21 @@ def main():
     # --- 1. Data Preparation and Device Setup ---
     # Aggressive data augmentation for the training set (Teacher and Student)
     aggressive_transform = transforms.Compose([
-        transforms.Resize(INPUT_SIZE),
-        transforms.CenterCrop(284),
+        transforms.Resize(INPUT_SIZE[0]),
+        transforms.CenterCrop(INPUT_SIZE[0]),
         transforms.RandomAffine(degrees=10, translate=(
             0.05, 0.05), scale=(0.95, 1.05)),
         transforms.RandomHorizontalFlip(),
         transforms.ColorJitter(
             brightness=0.15, contrast=0.15, saturation=0.15),
         transforms.ToTensor(),
-        transforms.Normalize(MEAN, STD)
+        transforms.Normalize(MEAN, STD),
     ])
 
     # Validation/Inference transformation (simple resize and normalize)
     val_transform = transforms.Compose([
-        transforms.Resize(INPUT_SIZE),
+        transforms.Resize(INPUT_SIZE[0]),
+        transforms.CenterCrop(INPUT_SIZE[0]),
         transforms.ToTensor(),
         transforms.Normalize(MEAN, STD)
     ])
@@ -116,8 +117,8 @@ def main():
             val_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
         # Set dynamic epoch counts based on the number of classes for a reasonable run time
-        num_epochs_teacher = max(4, min(10, len(train_dataset.classes)))
-        num_epochs_student = max(3, min(5, len(train_dataset.classes) // 2))
+        num_epochs_teacher = max(8, min(10, len(train_dataset.classes)))
+        num_epochs_student = max(5, min(5, len(train_dataset.classes) // 2))
 
     except Exception:
         print("WARNING: 'data/train'/'data/val' folders not found. Using dummy data.")
@@ -165,7 +166,7 @@ def main():
 
     # --- 3. Knowledge Distillation for Student Model (MobileNetV3) ---
     student_model = timm.create_model(
-        'mobilenetv3_small_100', pretrained=True, drop_rate=0.3)
+        'mobilenetv3_small_100', pretrained=True, drop_rate=0.2)
     # Adjust the classifier head
     student_model.classifier = nn.Linear(
         student_model.classifier.in_features, num_classes)
