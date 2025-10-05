@@ -1,0 +1,12 @@
+torch
+torchvision
+timm
+numpy
+ultralytics
+scikit-learn
+opencv-python
+argparse
+json
+os
+sys
+time
