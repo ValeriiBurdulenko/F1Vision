@@ -42,17 +42,16 @@ The project pipeline consists of the following stages:
 `pip install -r requirements.txt`
 
 ## Project Structure
-.
-├── data/
-│   ├── train/            # Training images (ImageFolder format: class_A/, class_B/, ...)
-│   └── val/              # Validation images (ImageFolder format)
-├── train_export.py       # Model training, KD, pruning, and export
-├── real_time_inference_and_self_learn.py # Real-time inference with YOLO, classification, and self-learning
-├── eval_val.py           # Model evaluation (classification report, confusion matrix)
-├── requirements.txt      # Python dependencies
-├── mobilenetv3_student_pruned.pth  # (Generated) Final compressed PyTorch model
-├── class_labels.json     # (Generated) Mapping of class indices to names
-└── ...
+
+├── data/__
+│   ├── train/            # Training images (ImageFolder format: class_A/, class_B/, ...)__
+│   └── val/              # Validation images (ImageFolder format)__
+├── train_export.py       # Model training, KD, pruning, and export__
+├── real_time_inference_and_self_learn.py # Real-time inference with YOLO, classification, and self-learning__
+├── eval_val.py           # Model evaluation (classification report, confusion matrix)__
+├── requirements.txt      # Python dependencies__
+├── mobilenetv3_student_pruned.pth  # (Generated) Final compressed PyTorch model__
+├── class_labels.json     # (Generated) Mapping of class indices to names__
 
 ## 1. Training and Export (train_export.py)
 
