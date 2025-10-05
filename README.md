@@ -43,7 +43,7 @@ The project pipeline consists of the following stages:
 
 ## Project Structure
 
-<code class="whitespace-pre!"><span><span>
+<code class="whitespace-pre!"><span><span>.
 ├── data/
 │   ├── train/            </span><span><span class="hljs-comment"># Training images (ImageFolder format: class_A/, class_B/, ...)</span></span><span>
 │   └── val/              </span><span><span class="hljs-comment"># Validation images (ImageFolder format)</span></span><span>
@@ -53,6 +53,7 @@ The project pipeline consists of the following stages:
 ├── requirements.txt      </span><span><span class="hljs-comment"># Python dependencies</span></span><span>
 ├── mobilenetv3_student_pruned.pth  </span><span><span class="hljs-comment"># (Generated) Final compressed PyTorch model</span></span><span>
 ├── class_labels.json     </span><span><span class="hljs-comment"># (Generated) Mapping of class indices to names</span></span><span>
+└── </span><span><span class="hljs-punctuation">...</span></span><span>
 </span></span></code>
 
 ## 1. Training and Export (train_export.py)
