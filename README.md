@@ -43,15 +43,17 @@ The project pipeline consists of the following stages:
 
 ## Project Structure
 
-├── data/<br />
-│   ├── train/____________# Training images (ImageFolder format: class_A/, class_B/, ...)<br />
-│   └── val/______________# Validation images (ImageFolder format)<br />
-├── train_export.py_______# Model training, KD, pruning, and export<br />
-├── real_time_inference_and_self_learn.py # Real-time inference with YOLO, classification, and self-learning<br />
-├── eval_val.py___________# Model evaluation (classification report, confusion matrix)<br />
-├── requirements.txt______# Python dependencies<br />
-├── mobilenetv3_student_pruned.pth  # (Generated) Final compressed PyTorch model<br />
-├── class_labels.json_____# (Generated) Mapping of class indices to names<br />
+<p data-start="206" data-end="849">.<br>
+├── data/<br>
+│   ├── train/            # Training images (ImageFolder format: class_A/, class_B/, ...)<br>
+│   └── val/              # Validation images (ImageFolder format)<br>
+├── train_export.py       # Model training, KD, pruning, and export<br>
+├── real_time_inference_and_self_learn.py # Real-time inference with YOLO, classification, and self-learning<br>
+├── eval_val.py           # Model evaluation (classification report, confusion matrix)<br>
+├── requirements.txt      # Python dependencies<br>
+├── mobilenetv3_student_pruned.pth  # (Generated) Final compressed PyTorch model<br>
+├── class_labels.json     # (Generated) Mapping of class indices to names<br>
+└── ...</p>
 
 ## 1. Training and Export (train_export.py)
 
