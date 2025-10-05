@@ -43,15 +43,15 @@ The project pipeline consists of the following stages:
 
 ## Project Structure
 
-├── data/__
-│   ├── train/            # Training images (ImageFolder format: class_A/, class_B/, ...)__
-│   └── val/              # Validation images (ImageFolder format)__
-├── train_export.py       # Model training, KD, pruning, and export__
-├── real_time_inference_and_self_learn.py # Real-time inference with YOLO, classification, and self-learning__
-├── eval_val.py           # Model evaluation (classification report, confusion matrix)__
-├── requirements.txt      # Python dependencies__
-├── mobilenetv3_student_pruned.pth  # (Generated) Final compressed PyTorch model__
-├── class_labels.json     # (Generated) Mapping of class indices to names__
+├── data/<br />
+│   ├── train/            # Training images (ImageFolder format: class_A/, class_B/, ...)<br />
+│   └── val/              # Validation images (ImageFolder format)<br />
+├── train_export.py       # Model training, KD, pruning, and export<br />
+├── real_time_inference_and_self_learn.py # Real-time inference with YOLO, classification, and self-learning<br />
+├── eval_val.py           # Model evaluation (classification report, confusion matrix)<br />
+├── requirements.txt      # Python dependencies<br />
+├── mobilenetv3_student_pruned.pth  # (Generated) Final compressed PyTorch model<br />
+├── class_labels.json     # (Generated) Mapping of class indices to names<br />
 
 ## 1. Training and Export (train_export.py)
 
@@ -79,7 +79,7 @@ Usage
 `python eval_val.py`
 
 Output
-Displays a Classification Report (accuracy, precision, recall, F1-score).
-Outputs a Confusion Matrix.
-Saves misclassified images to misclassified_examples/ for further analysis.
+Displays a Classification Report (accuracy, precision, recall, F1-score).<br />
+Outputs a Confusion Matrix.<br />
+Saves misclassified images to misclassified_examples/ for further analysis.<br />
 
