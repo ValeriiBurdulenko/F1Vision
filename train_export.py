@@ -2,6 +2,7 @@ import torch.nn.utils.prune as prune
 import torch.nn.functional as F
 import torch
 import torch.nn as nn
+import numpy as np
 import timm
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
@@ -16,7 +17,7 @@ STUDENT_MODEL_PATH = "mobilenetv3_student_pruned.pth"
 ONNX_OUTPUT_PATH = "mobilenetv3_student_pruned_fp32.onnx"
 
 # Model Hyperparameters
-INPUT_SIZE = (300, 300)
+INPUT_SIZE = (300)
 BATCH_SIZE = 16
 LEARNING_RATE = 1e-4
 
@@ -25,7 +26,7 @@ KD_TEMPERATURE = 4.0
 KD_ALPHA = 0.5
 
 # Pruning Parameters
-PRUNING_AMOUNT = 0.3  # 30% structured pruning
+PRUNING_AMOUNT = 0.15  # 30% structured pruning
 
 # Export Parameters
 OPSET_VERSION = 14
@@ -36,25 +37,16 @@ STD = [0.229, 0.224, 0.225]
 
 
 def get_sample_weights(dataset):
-    """Рассчитывает веса для WeightedRandomSampler на основе частоты классов."""
-    # Получаем метки классов для всего набора данных
-    targets = dataset.targets
-
-    # Считаем количество образцов в каждом классе
-    class_sample_count = torch.tensor(
-        [len(torch.where(torch.tensor(targets) == t)[0])
-         for t in torch.unique(torch.tensor(targets))]
-    )
-
-    # Рассчитываем веса классов: 1.0 / количество образцов
-    weight = 1.0 / class_sample_count.float()
-
-    # Создаем тензор весов для каждого образца
-    samples_weight = weight[targets]
-
-    print(
-        f"✅ Class balancing applied. Max weight: {weight.max().item():.4f}, Min weight: {weight.min().item():.4f}")
-    return samples_weight.tolist()
+    # Calculates weights for WeightedRandomSampler based on class frequencies
+    targets = np.array(dataset.targets, dtype=np.int64)
+    class_counts = np.bincount(targets, minlength=len(dataset.classes))
+    # guard tiny counts
+    class_counts = class_counts + 1e-6
+    total = targets.shape[0]
+    class_weights = total / (len(class_counts) * class_counts)
+    samples_weight = class_weights[targets]
+    print("Class counts:", dict(zip(dataset.classes, class_counts.astype(int))))
+    return samples_weight.astype(np.float32).tolist()
 
 
 def main():
@@ -70,20 +62,14 @@ def main():
     # Aggressive data augmentation for the training set (Teacher and Student)
     aggressive_transform = transforms.Compose([
         transforms.Resize(INPUT_SIZE),
-        transforms.RandomPerspective(distortion_scale=0.2, p=0.3),
-        transforms.RandomAffine(
-            degrees=20,                         # Stronger rotation
-            translate=(0.1, 0.1),               # Shift up to 20%
-            scale=(0.9, 1.1),                   # Scaling
-            shear=5                            # Shear
-        ),
+        transforms.CenterCrop(284),
+        transforms.RandomAffine(degrees=10, translate=(
+            0.05, 0.05), scale=(0.95, 1.05)),
         transforms.RandomHorizontalFlip(),
-        transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3),
+        transforms.ColorJitter(
+            brightness=0.15, contrast=0.15, saturation=0.15),
         transforms.ToTensor(),
-        transforms.RandomRotation(15),
-        transforms.Normalize(MEAN, STD),
-        transforms.RandomErasing(p=0.2, scale=(
-            0.02, 0.33), ratio=(0.3, 3.3), value='random')
+        transforms.Normalize(MEAN, STD)
     ])
 
     # Validation/Inference transformation (simple resize and normalize)
@@ -110,28 +96,28 @@ def main():
         train_dataset = datasets.ImageFolder(
             'data/train', transform=aggressive_transform)
         val_dataset = datasets.ImageFolder('data/val', transform=val_transform)
-        # --- ПРИМЕНЕНИЕ BALANCING (WeightedRandomSampler) ---
+        # --- APPLICATION OF BALANCING (WeightedRandomSampler) ---
         sample_weights = get_sample_weights(train_dataset)
 
         sampler = WeightedRandomSampler(
             weights=sample_weights,
-            num_samples=len(train_dataset),  # Размер выборки для эпохи
+            num_samples=len(train_dataset),
             replacement=True
         )
 
-        # Создаем DataLoader, используя Sampler и отключая shuffle
+        # Create a DataLoader using Sampler and disabling shuffle
         train_loader = DataLoader(
             train_dataset,
             batch_size=BATCH_SIZE,
-            sampler=sampler,  # <-- WeightedRandomSampler
-            shuffle=False    # <-- Обязательно False при использовании sampler
+            sampler=sampler,
+            shuffle=False
         )
         val_loader = DataLoader(
             val_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
         # Set dynamic epoch counts based on the number of classes for a reasonable run time
-        num_epochs_teacher = max(2, min(10, len(train_dataset.classes)))
-        num_epochs_student = max(1, min(5, len(train_dataset.classes) // 2))
+        num_epochs_teacher = max(4, min(10, len(train_dataset.classes)))
+        num_epochs_student = max(3, min(5, len(train_dataset.classes) // 2))
 
     except Exception:
         print("WARNING: 'data/train'/'data/val' folders not found. Using dummy data.")
@@ -153,7 +139,7 @@ def main():
         teacher_model.classifier.in_features, num_classes)
     teacher_model = teacher_model.to(device)
 
-    criterion = nn.CrossEntropyLoss()
+    criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
     teacher_optimizer = torch.optim.Adam(
         teacher_model.parameters(), lr=LEARNING_RATE)
 
@@ -178,7 +164,8 @@ def main():
                 f"Teacher Epoch {epoch+1}, Loss: {running_loss/len(train_loader):.4f}")
 
     # --- 3. Knowledge Distillation for Student Model (MobileNetV3) ---
-    student_model = timm.create_model('mobilenetv3_small_100', pretrained=True)
+    student_model = timm.create_model(
+        'mobilenetv3_small_100', pretrained=True, drop_rate=0.3)
     # Adjust the classifier head
     student_model.classifier = nn.Linear(
         student_model.classifier.in_features, num_classes)
@@ -266,10 +253,10 @@ def main():
         # Export the traced model
         torch.onnx.export(
             traced_model,
-            dummy_input.cpu(),  # Use CPU tensor
+            dummy_input.cpu(),
             output_path,
             export_params=True,
-            opset_version=OPSET_VERSION,   # Use the defined Opset version
+            opset_version=OPSET_VERSION,
             input_names=['input'],
             output_names=['output']
         )
