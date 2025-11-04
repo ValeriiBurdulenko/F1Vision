@@ -84,5 +84,26 @@ Usage
 Output
 Displays a Classification Report (accuracy, precision, recall, F1-score).<br />
 Outputs a Confusion Matrix.<br />
+
+## ⚙️ Deployment on Microcontrollers (MCU)
+
+For deployment on microcontrollers or other embedded systems, the compressed ONNX model can be converted into **TensorFlow Lite** format using the open-source repository  
+👉 [MPolaris/onnx2tflite](https://github.com/MPolaris/onnx2tflite).
+
+This tool provides a simple and reliable workflow for converting ONNX models to `.tflite` format optimized for edge inference.
+
+### Example Conversion Workflow
+
+```bash
+# Clone the conversion repository
+git clone https://github.com/MPolaris/onnx2tflite
+cd onnx2tflite
+python setup.py install
+
+# Follow the provided instructions in the repo
+# Example command:
+# save tflite model
+python -m onnx2tflite --weights "./your_model.onnx" --outpath "./save_path" --formats "tflite"
+
 Saves misclassified images to misclassified_examples/ for further analysis.<br />
 
