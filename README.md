@@ -84,6 +84,7 @@ Usage
 Output
 Displays a Classification Report (accuracy, precision, recall, F1-score).<br />
 Outputs a Confusion Matrix.<br />
+Saves misclassified images to misclassified_examples/ for further analysis.<br />
 
 ## ⚙️ Deployment on Microcontrollers (MCU)
 
@@ -104,6 +105,3 @@ python setup.py install
 # Example command:
 # save tflite model
 python -m onnx2tflite --weights "./your_model.onnx" --outpath "./save_path" --formats "tflite"
-
-Saves misclassified images to misclassified_examples/ for further analysis.<br />
-
